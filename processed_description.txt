@@ -1,0 +1,5 @@
+column 1-1024 fingerprints
+column 1025-2048 occp
+column 2049 measure value
+column 2050 measure type
+column 2051 target
