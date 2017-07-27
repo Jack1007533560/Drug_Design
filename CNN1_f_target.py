@@ -50,20 +50,20 @@ b_conv1 = bias_variable([16])
 
 x_c = tf.reshape(x, [-1, 1, 2048, 1])
 
-h_conv1 = tf.nn.relu(conv2d(x_c, W_conv1) + b_conv1)
+h_conv1 = tf.nn.relu(conv2d(x_c, W_conv1) + b_conv1)    #16*2048/2
 h_pool1 = max_pool_4(h_conv1)
 
 W_conv2 = weight_variable([1, 4, 16, 64])
 b_conv2 = bias_variable([64])
 
-h_conv2 = tf.nn.relu(conv2d(h_pool1, W_conv2) + b_conv2)
+h_conv2 = tf.nn.relu(conv2d(h_pool1, W_conv2) + b_conv2)    #64*2048/4
 h_pool2 = max_pool_4(h_conv2)
 
 
-W_fc1 = weight_variable([128*64*4, 1024])
+W_fc1 = weight_variable([512*64, 1024])
 b_fc1 = bias_variable([1024])
 
-h_pool2_flat = tf.reshape(h_pool2, [-1, 128*64*4])
+h_pool2_flat = tf.reshape(h_pool2, [-1, 512*64])
 h_fc1 = tf.nn.relu(tf.matmul(h_pool2_flat, W_fc1) + b_fc1)
 
 keep_prob = tf.placeholder(tf.float32)
