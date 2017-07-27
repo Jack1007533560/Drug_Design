@@ -43,7 +43,7 @@ def conv2d(x, W):
 
 def max_pool_4(x):
   return tf.nn.max_pool(x, ksize=[1, 1, 4, 1],
-                        strides=[1, 2, 2, 1], padding='SAME')
+                        strides=[1, 1, 2, 1], padding='SAME')
 
 W_conv1 = weight_variable([1, 8, 1, 16])
 b_conv1 = bias_variable([16])
