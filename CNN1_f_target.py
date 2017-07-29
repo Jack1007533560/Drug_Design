@@ -2,30 +2,30 @@ import pandas as pd
 import tensorflow as tf
 from sklearn.cross_validation import train_test_split
 import numpy as np
-
+import matplotlib.pyplot as plt
 
 import os
 os.chdir('G:/academics/ML2 Project/drug_discovery')
 
 data=pd.read_csv('processed.csv')
 
+#print(data.iloc[:,-1].unique())
+#7 targets
+
 target=data.iloc[:,-1]
 target=pd.get_dummies(target)
 data=pd.concat([data,target],axis=1)
-train,test=train_test_split(data,test_size=0.3)
+train,test=train_test_split(data,test_size=0.4)
+test,valid=train_test_split(test,test_size=0.5)
 train_f=train.iloc[:,1:2049]
 test_f=test.iloc[:,1:2049]
+valid_f=valid.iloc[:,1:2049]
 train_t=train.iloc[:,2052:2059]
 test_t=test.iloc[:,2052:2059]
+valid_t=valid.iloc[:,2052:2059]
 train_t=np.reshape(train_t,[train_t.shape[0],7])
 test_t=np.reshape(test_t,[test_t.shape[0],7])
-
-
-
-#print(data.iloc[:,-1].unique())
-#7 targets
-print(train_f.shape)
-print(train_t.shape)
+valid_t=np.reshape(valid_t,[valid_t.shape[0],7])
 
 x=tf.placeholder(tf.float32,shape=[None,2048])
 y_=tf.placeholder(tf.float32,shape=[None,7])
@@ -50,13 +50,13 @@ b_conv1 = bias_variable([16])
 
 x_c = tf.reshape(x, [-1, 1, 2048, 1])
 
-h_conv1 = tf.nn.relu(conv2d(x_c, W_conv1) + b_conv1)    #16*2048/2
+h_conv1 = tf.nn.relu(conv2d(x_c, W_conv1) + b_conv1)   #16*2048/2
 h_pool1 = max_pool_4(h_conv1)
 
 W_conv2 = weight_variable([1, 4, 16, 64])
 b_conv2 = bias_variable([64])
 
-h_conv2 = tf.nn.relu(conv2d(h_pool1, W_conv2) + b_conv2)    #64*2048/4
+h_conv2 = tf.nn.relu(conv2d(h_pool1, W_conv2) + b_conv2)   #64*2048/4
 h_pool2 = max_pool_4(h_conv2)
 
 
@@ -80,14 +80,28 @@ train_step = tf.train.AdamOptimizer(1e-4).minimize(cross_entropy)
 correct_prediction = tf.equal(tf.argmax(y_conv, 1), tf.argmax(y_, 1))
 accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
 
+t_a=[]
+v_a=[]
+
 with tf.Session() as sess:
   sess.run(tf.global_variables_initializer())
   for i in range(1000):
     train_accuracy = accuracy.eval(feed_dict={x: train_f, y_: train_t, keep_prob: 1.0})
     print('step %d, training accuracy %g' % (i, train_accuracy))
+    t_a.append(train_accuracy)
+    valid_accuracy=accuracy.eval(feed_dict={x: valid_f, y_: valid_t, keep_prob: 1.0})
+    print('step %d, validation accuracy %g' % (i, valid_accuracy))
+    v_a.append(valid_accuracy)
     train_step.run(feed_dict={x: train_f, y_: train_t, keep_prob: 0.8})
 
   print('test accuracy %g' % accuracy.eval(feed_dict={x: test_f, y_:test_t, keep_prob: 1.0}))
 
-#training accuracy 0.980788
-#test accuracy 0.813055
+plt.figure(figsize=(20,20))
+plt.plot(range(1000),t_a,'b',label='train accuracy')
+plt.plot(range(1000),v_a,'y',label='valid accuracy')
+plt.ylabel('accuracy')
+plt.xlabel('step')
+plt.show()
+
+#training accuracy 0.987828
+#test accuracy 0.788985
